@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BERLINS - Photobooth </title>
+    <title>BERLINS PHOTOBOOTH</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=Playfair+Display:wght@600;700&family=Pacifico&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script>
@@ -15,6 +15,9 @@
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                         mono: ['Space Grotesk', 'monospace'],
+                        serif: ['Playfair Display', 'serif'],
+                        cursive: ['Pacifico', 'cursive'],
+                        cinzel: ['Cinzel', 'serif']
                     },
                     colors: {
                         brand: {
@@ -30,6 +33,12 @@
         }
     </script>
     <style>
+        :root {
+            --print-width: 4in;
+            --print-height: 6in;
+            --photo-gap: 20px;
+        }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
@@ -59,24 +68,57 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+
+        /* DYNAMIC PRINT MEDIA STYLES - Uses CSS Variables */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            #printArea, #printArea * {
+                visibility: visible !important;
+            }
+            #printArea {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: var(--print-width) !important;
+                height: var(--print-height) !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background: white !important;
+            }
+            #outputCanvas {
+                width: 100% !important;
+                height: 100% !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
+                object-fit: contain !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            @page {
+                size: var(--print-width) var(--print-height);
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col overflow-x-hidden">
 
-    <!-- HEADER (Nakatago na ang folder location status) -->
+    <!-- HEADER -->
     <header class="h-16 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40 px-4 lg:px-8 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
                 <i class="fa-solid font-bold fa-camera-retro text-xl text-white"></i>
             </div>
             <div>
-                <h1 class="text-lg font-bold font-mono tracking-tight leading-none bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">BERLINS PHOTOBOOTH</h1>
-                <p class="text-[11px] text-slate-400 font-medium">DSLR & Web Virtual Capture Suite</p>
+                <h1 class="text-lg font-bold font-mono tracking-tight leading-none bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Berlins PhotoBOOTH</h1>
+                <p class="text-[11px] text-slate-400 font-medium">Photobooth Print </p>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-            <!-- Hidden target folder selection button for config -->
             <button id="selectFolderBtn" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition-all" title="Select Output Folder">
                 <i class="fa-solid fa-folder-open text-amber-400"></i>
             </button>
@@ -100,7 +142,7 @@
                 <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover filter-normal transition-all duration-300"></video>
                 
                 <div id="countdownOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-xs hidden pointer-events-none z-20 p-4 text-center">
-                    <span id="countdownStatusText" class="text-xl md:text-2xl font-bold font-mono text-brand-300 mb-2 tracking-wide uppercase drop-shadow-md">Get ready! We will take a capture now!</span>
+                    <span id="countdownStatusText" class="text-xl md:text-2xl font-bold font-mono text-brand-300 mb-2 tracking-wide uppercase drop-shadow-md">Get ready!</span>
                     <span id="countdownNumber" class="text-9xl font-mono font-extrabold text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] scale-125 transition-all">3</span>
                 </div>
 
@@ -120,7 +162,7 @@
                 <div class="absolute inset-4 border border-white/10 rounded-xl pointer-events-none flex flex-col justify-between p-3 opacity-60 group-hover:opacity-100 transition-opacity">
                     <div class="flex justify-between text-[10px] font-mono text-slate-400">
                         <span>LIVE 4:3 FEED</span>
-                        <span id="resolutionIndicator">1280x720</span>
+                        <span id="resolutionIndicator">1920x1080</span>
                     </div>
                     <div class="flex justify-between text-[10px] font-mono text-slate-400">
                         <span>AUTO-EXPOSURE: ON</span>
@@ -155,6 +197,40 @@
                     </h2>
                 </div>
 
+                <!-- Paper Dimension & Custom Size Engine -->
+                <div class="space-y-3 p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-amber-400 block flex items-center gap-1.5">
+                            <i class="fa-solid fa-ruler-combined"></i> Print Dimensions (Paper Size)
+                        </label>
+                        <span id="currentDpiBadge" class="text-[9px] bg-brand-900/60 text-brand-300 px-2 py-0.5 rounded border border-brand-500/30 font-mono">300 DPI Active</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-2">
+                        <select id="paperPresetSelect" class="bg-slate-950 text-xs text-slate-200 border border-slate-700 rounded-lg px-2.5 py-2 outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="4x6" selected>4 x 6 inches (Standard 4R Photo Paper)</option>
+                            <option value="2x6">2 x 6 inches (Single Strip)</option>
+                            <option value="5x7">5 x 7 inches (5R Large Postcard)</option>
+                            <option value="custom">Custom Size (Inches)...</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 block mb-1">Width (in)</label>
+                            <input type="number" id="paperWidthInput" value="4" step="0.1" min="1" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 block mb-1">Height (in)</label>
+                            <input type="number" id="paperHeightInput" value="6" step="0.1" min="1" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-medium text-slate-400 block mb-1">Photo Gap (px)</label>
+                            <input type="number" id="photoGapInput" value="20" step="1" min="0" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-xs text-white outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Timer Selector -->
                 <div class="space-y-2">
                     <label class="text-xs font-semibold text-slate-400 block">Countdown Delay</label>
@@ -167,19 +243,30 @@
 
                 <!-- Layout Selector -->
                 <div class="space-y-2">
-                    <label class="text-xs font-semibold text-slate-400 block">Photobooth Layout</label>
-                    <div class="grid grid-cols-3 gap-2" id="layoutSelector">
-                        <button data-layout="single" class="layout-btn p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col items-center gap-1.5 hover:bg-slate-750 transition-all">
-                            <i class="fa-solid fa-square text-lg text-slate-400"></i>
-                            <span class="text-[11px] font-semibold">Single Shot</span>
+                    <label class="text-xs font-semibold text-slate-400 block">Photobooth Layout Format</label>
+                    <div class="grid grid-cols-2 gap-2" id="layoutSelector">
+                        <button data-layout="strip-3-twin" class="layout-btn active p-3 rounded-xl bg-slate-800 border-2 border-brand-500 flex flex-col items-center gap-1 hover:bg-slate-750 transition-all">
+                            <i class="fa-solid fa-pause text-brand-400 text-base"></i>
+                            <span class="text-[11px] font-bold">Twin Strips (2 Copies)</span>
+                            <span class="text-[9px] text-slate-400">3 Shots Each • Twin Layout</span>
                         </button>
-                        <button data-layout="strip-3" class="layout-btn active p-3 rounded-xl bg-slate-800 border-2 border-brand-500 flex flex-col items-center gap-1.5 hover:bg-slate-750 transition-all">
-                            <i class="fa-solid fa-bars text-lg text-brand-400"></i>
-                            <span class="text-[11px] font-semibold">3-Photo Strip</span>
+
+                        <button data-layout="strip-3-single" class="layout-btn p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col items-center gap-1 hover:bg-slate-750 transition-all">
+                            <i class="fa-solid fa-grip-lines-vertical text-slate-400 text-base"></i>
+                            <span class="text-[11px] font-bold">Single Strip</span>
+                            <span class="text-[9px] text-slate-400">1 Copy • 3 Shots</span>
                         </button>
-                        <button data-layout="grid-4" class="layout-btn p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col items-center gap-1.5 hover:bg-slate-750 transition-all">
-                            <i class="fa-solid fa-border-all text-lg text-slate-400"></i>
-                            <span class="text-[11px] font-semibold">2x2 Quad Grid</span>
+
+                        <button data-layout="grid-4" class="layout-btn p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col items-center gap-1 hover:bg-slate-750 transition-all">
+                            <i class="fa-solid fa-border-all text-slate-400 text-base"></i>
+                            <span class="text-[11px] font-bold">2x2 Quad Postcard</span>
+                            <span class="text-[9px] text-slate-400">4-Pose Grid</span>
+                        </button>
+
+                        <button data-layout="single" class="layout-btn p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 flex flex-col items-center gap-1 hover:bg-slate-750 transition-all">
+                            <i class="fa-solid fa-square text-slate-400 text-base"></i>
+                            <span class="text-[11px] font-bold">Single Full Portrait</span>
+                            <span class="text-[9px] text-slate-400">1-Pose Portrait Frame</span>
                         </button>
                     </div>
                 </div>
@@ -195,6 +282,18 @@
                         <button data-filter="filter-cyberpunk" class="filter-btn p-2 rounded-lg bg-slate-800/60 border border-slate-700 text-xs font-medium text-slate-300">Cyberpunk</button>
                         <button data-filter="filter-soft" class="filter-btn p-2 rounded-lg bg-slate-800/60 border border-slate-700 text-xs font-medium text-slate-300">Soft Glow</button>
                     </div>
+                </div>
+
+                <!-- Auto-Print Switch -->
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-200 block">Auto-Print Dialog</span>
+                        <span class="text-[10px] text-slate-400">Kusang magpi-print pagkatapos kunan</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="autoPrintToggle" class="sr-only peer" checked>
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
+                    </label>
                 </div>
             </div>
 
@@ -214,14 +313,14 @@
         </section>
     </main>
 
-    <!-- EXPORT MODAL WITH LIVE BORDER & COLOR CUSTOMIZATION -->
+    <!-- EXPORT & TEMPLATE DESIGN MODAL -->
     <div id="exportModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-5xl w-full my-auto p-5 sm:p-6 shadow-2xl flex flex-col gap-5 max-h-[95vh]">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-6xl w-full my-auto p-5 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[95vh]">
             
             <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-shrink-0">
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold font-mono text-white">Your Photo Strip is Ready!</h3>
-                    <p class="text-xs text-slate-400">Customize border style & color live before saving or downloading.</p>
+                    <h3 class="text-base sm:text-lg font-bold font-mono text-white">Your Photo Print File is Ready!</h3>
+                    <p class="text-xs text-slate-400">Customize frame design, size, or select from preset options before printing.</p>
                 </div>
                 <button id="closeModalBtn" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-all">
                     <i class="fa-solid fa-xmark"></i>
@@ -230,22 +329,50 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start overflow-y-auto flex-1 pr-1">
                 <!-- PREVIEW CANVAS -->
-                <div class="lg:col-span-7 flex flex-col items-center justify-center bg-slate-950 p-4 rounded-xl border border-slate-800/80 w-full h-full min-h-[320px]">
-                    <canvas id="outputCanvas" class="max-w-full max-h-[55vh] w-auto h-auto rounded shadow-2xl object-contain block mx-auto"></canvas>
+                <div class="lg:col-span-6 flex flex-col items-center justify-center bg-slate-950 p-4 rounded-xl border border-slate-800/80 w-full h-full min-h-[320px] sticky top-0">
+                    <div id="printArea" class="flex items-center justify-center w-full">
+                        <canvas id="outputCanvas" class="max-w-full max-h-[55vh] w-auto h-auto rounded shadow-2xl object-contain block mx-auto"></canvas>
+                    </div>
                 </div>
 
-                <!-- LIVE CUSTOMIZATION CONTROLS & ACTIONS -->
-                <div class="lg:col-span-5 flex flex-col gap-4">
+                <!-- CONTROLS & TABS SECTION -->
+                <div class="lg:col-span-6 flex flex-col gap-4">
                     
-                    <!-- BORDER STYLE & COLOR CONTROLS -->
-                    <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80 space-y-3">
-                        <h4 class="text-xs font-bold font-mono uppercase tracking-wider text-brand-400 flex items-center gap-2">
-                            <i class="fa-solid fa-palette"></i> Customize Strip Style
-                        </h4>
+                    <!-- TAB NAVIGATION -->
+                    <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+                        <button id="tabPresetsBtn" class="flex-1 py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Preset Gallery
+                        </button>
+                        <button id="tabEditorBtn" class="flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-pen-ruler"></i> Custom Frame Editor
+                        </button>
+                    </div>
 
-                        <!-- Frame/Border Style -->
+                    <!-- TAB 1: PRESET DESIGNS GALLERY -->
+                    <div id="tabPresetsContent" class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-400">Filter Category:</span>
+                            <select id="presetCategorySelect" class="bg-slate-950 text-xs text-slate-200 border border-slate-800 rounded-lg px-2.5 py-1 outline-none">
+                                <option value="all">All Built-in Presets (50)</option>
+                                <option value="custom">★ My Saved Presets</option>
+                                <option value="classic">Classic & Wedding (1-10)</option>
+                                <option value="neon">Neon & Cyber (11-20)</option>
+                                <option value="floral">Floral & Romantic (21-30)</option>
+                                <option value="retro">Retro & Vintage (31-40)</option>
+                                <option value="pastel">Pastel & Minimal (41-50)</option>
+                            </select>
+                        </div>
+
+                        <div id="presetFramesGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[280px] overflow-y-auto p-1 bg-slate-950/60 rounded-xl border border-slate-800/80">
+                            <!-- Preset Thumbnails Generated Dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: CUSTOM FRAME EDITOR -->
+                    <div id="tabEditorContent" class="hidden space-y-3 bg-slate-950/80 p-4 rounded-xl border border-slate-800/80">
+                        <!-- Frame Border Style -->
                         <div>
-                            <label class="text-[11px] font-semibold text-slate-400 block mb-1.5">Border Style</label>
+                            <label class="text-[11px] font-semibold text-slate-400 block mb-1.5">Border Style & Layout</label>
                             <div class="grid grid-cols-3 gap-1.5" id="modalFrameStyleSelector">
                                 <button data-style="classic" class="modal-frame-btn active p-2 rounded-lg bg-slate-800 border-2 border-brand-500 text-[11px] font-medium text-slate-200">Classic</button>
                                 <button data-style="rounded" class="modal-frame-btn p-2 rounded-lg bg-slate-800/60 border border-slate-700 text-[11px] font-medium text-slate-300">Rounded</button>
@@ -256,39 +383,89 @@
                             </div>
                         </div>
 
-                        <!-- Border Color Picker -->
-                        <div class="flex items-center justify-between pt-1">
-                            <label class="text-[11px] font-semibold text-slate-400">Border Background Color</label>
-                            <div class="flex items-center gap-2">
-                                <input type="color" id="modalFrameColorPicker" value="#ffffff" class="w-8 h-8 bg-transparent rounded cursor-pointer border-0">
-                                <span id="modalFrameHexCode" class="text-xs font-mono text-slate-300">#FFFFFF</span>
+                        <!-- Frame Background Type -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-400 block mb-1">Primary Color / Start</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="modalFrameColorPicker" value="#ffffff" class="w-8 h-8 bg-transparent rounded cursor-pointer border-0">
+                                    <span id="modalFrameHexCode" class="text-xs font-mono text-slate-300">#FFFFFF</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-400 block mb-1">Gradient End Color</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="color" id="modalFrameColorPicker2" value="#ffffff" class="w-8 h-8 bg-transparent rounded cursor-pointer border-0">
+                                    <label class="inline-flex items-center gap-1 text-[10px] text-slate-400">
+                                        <input type="checkbox" id="useGradientToggle" class="rounded bg-slate-900 border-slate-700"> Use Gradient
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Footer Text -->
+                        <!-- Pattern Overlay Options -->
                         <div>
-                            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Footer Text</label>
+                            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Background Pattern Texture</label>
+                            <select id="bgPatternSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none">
+                                <option value="none">Solid Color / Gradient</option>
+                                <option value="dots">Polka Dots Pattern</option>
+                                <option value="stripes">Diagonal Stripes</option>
+                                <option value="stars">Sparkle Stars Overlay</option>
+                                <option value="hearts">Mini Hearts Pattern</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Family & Footer Text -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-400 block mb-1">Font Style</label>
+                                <select id="fontFamilySelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none">
+                                    <option value="Space Grotesk">Modern Mono</option>
+                                    <option value="Plus Jakarta Sans">Clean Sans</option>
+                                    <option value="Playfair Display">Elegant Serif</option>
+                                    <option value="Pacifico">Calligraphy Cursive</option>
+                                    <option value="Cinzel">Classic Luxury</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-semibold text-slate-400 block mb-1">Text Color</label>
+                                <input type="color" id="modalTextColorPicker" value="#0f172a" class="w-full h-8 bg-transparent rounded cursor-pointer border border-slate-700">
+                            </div>
+                        </div>
+
+                        <!-- Footer Text Input -->
+                        <div>
+                            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Footer Branding / Title</label>
                             <input type="text" id="modalFooterTextInput" value="StudioSnap • 2026 Event" placeholder="e.g. John & Sarah's Wedding" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+
+                        <!-- SAVE PRESET BUTTON -->
+                        <div class="pt-2 border-t border-slate-800">
+                            <button id="saveCustomPresetBtn" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-md transition-all">
+                                <i class="fa-solid fa-bookmark"></i> Save Current Style as Preset
+                            </button>
                         </div>
                     </div>
 
                     <!-- ACTION BUTTONS -->
-                    <div class="space-y-2">
-                        <button id="saveToFolderBtn" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
-                            <i class="fa-solid fa-folder-arrow-down"></i> Confirm & Save All Files to Folder
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <button id="printStripBtn" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all">
+                            <i class="fa-solid fa-print"></i> Print Photo Strip Now
                         </button>
 
-                        <button id="downloadStripBtn" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20 transition-all">
-                            <i class="fa-solid fa-download"></i> Save High-Res Image (.PNG)
-                        </button>
-                        
-                        <button id="webShareBtn" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 border border-slate-700 transition-all">
-                            <i class="fa-solid fa-share-nodes"></i> Share via Bluetooth / Mobile
-                        </button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="saveToFolderBtn" class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all">
+                                <i class="fa-solid fa-folder-arrow-down"></i> Save All Files
+                            </button>
+
+                            <button id="downloadStripBtn" class="w-full py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20 transition-all">
+                                <i class="fa-solid fa-download"></i> Save PNG
+                            </button>
+                        </div>
                     </div>
 
                     <!-- QR CODE GENERATOR -->
-                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex flex-col items-center gap-2 text-center">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col items-center gap-2 text-center">
                         <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                             <i class="fa-solid fa-qrcode text-brand-400"></i> Scan to Download on Phone
                         </span>
@@ -304,6 +481,90 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let directoryHandle = null;
         let pendingBlobsToSave = [];
+
+        // 50 BUILT-IN PRESET DESIGNS
+        const PRESET_DESIGNS = [
+            // Classic & Wedding (1-10)
+            { id: 1, name: "Wedding Pure White", category: "classic", bg: "#ffffff", bg2: "#f8fafc", useGrad: false, style: "classic", text: "#0f172a", font: "Playfair Display", pattern: "none" },
+            { id: 2, name: "Gold Royalty", category: "classic", bg: "#1e1b18", bg2: "#d4af37", useGrad: true, style: "double-border", text: "#fef08a", font: "Cinzel", pattern: "none" },
+            { id: 3, name: "Ivory Romance", category: "classic", bg: "#fdfbf7", bg2: "#f5f0eb", useGrad: false, style: "rounded", text: "#431407", font: "Playfair Display", pattern: "dots" },
+            { id: 4, name: "Silver Elegance", category: "classic", bg: "#0f172a", bg2: "#334155", useGrad: true, style: "double-border", text: "#e2e8f0", font: "Cinzel", pattern: "none" },
+            { id: 5, name: "Champagne Glow", category: "classic", bg: "#fef3c7", bg2: "#fde68a", useGrad: true, style: "classic", text: "#78350f", font: "Playfair Display", pattern: "none" },
+            { id: 6, name: "Emerald Luxe", category: "classic", bg: "#064e3b", bg2: "#022c22", useGrad: true, style: "double-border", text: "#a7f3d0", font: "Cinzel", pattern: "none" },
+            { id: 7, name: "Rose Gold", category: "classic", bg: "#fce7f3", bg2: "#fbcfe8", useGrad: true, style: "rounded", text: "#831843", font: "Pacifico", pattern: "stars" },
+            { id: 8, name: "Midnight Pearl", category: "classic", bg: "#020617", bg2: "#1e1b4b", useGrad: true, style: "classic", text: "#e0e7ff", font: "Cinzel", pattern: "stars" },
+            { id: 9, name: "Vintage Cream", category: "classic", bg: "#fef3c7", bg2: "#fffbeb", useGrad: false, style: "polaroid", text: "#451a03", font: "Playfair Display", pattern: "none" },
+            { id: 10, name: "Classic Tuxedo", category: "classic", bg: "#000000", bg2: "#18181b", useGrad: false, style: "double-border", text: "#ffffff", font: "Cinzel", pattern: "none" },
+
+            // Neon & Cyber (11-20)
+            { id: 11, name: "Cyberpunk Pink", category: "neon", bg: "#0f172a", bg2: "#f43f5e", useGrad: true, style: "double-border", text: "#f43f5e", font: "Space Grotesk", pattern: "stripes" },
+            { id: 12, name: "Neon Matrix", category: "neon", bg: "#022c22", bg2: "#10b981", useGrad: true, style: "classic", text: "#34d399", font: "Space Grotesk", pattern: "none" },
+            { id: 13, name: "Electric Purple", category: "neon", bg: "#2e1065", bg2: "#a855f7", useGrad: true, style: "rounded", text: "#f0abfc", font: "Space Grotesk", pattern: "stars" },
+            { id: 14, name: "Synthwave Sunset", category: "neon", bg: "#581c87", bg2: "#f43f5e", useGrad: true, style: "classic", text: "#fef08a", font: "Space Grotesk", pattern: "stripes" },
+            { id: 15, name: "Laser Blue", category: "neon", bg: "#0c4a6e", bg2: "#06b6d4", useGrad: true, style: "double-border", text: "#67e8f9", font: "Space Grotesk", pattern: "none" },
+            { id: 16, name: "Tokyo Drift", category: "neon", bg: "#18181b", bg2: "#dc2626", useGrad: true, style: "retro-film", text: "#fca5a5", font: "Space Grotesk", pattern: "none" },
+            { id: 17, name: "Acid Lime", category: "neon", bg: "#14532d", bg2: "#84cc16", useGrad: true, style: "rounded", text: "#bef264", font: "Space Grotesk", pattern: "dots" },
+            { id: 18, name: "Hyperdrive Cyan", category: "neon", bg: "#082f49", bg2: "#38bdf8", useGrad: true, style: "classic", text: "#bae6fd", font: "Space Grotesk", pattern: "none" },
+            { id: 19, name: "Vaporwave Dream", category: "neon", bg: "#831843", bg2: "#06b6d4", useGrad: true, style: "rounded", text: "#f472b6", font: "Pacifico", pattern: "stars" },
+            { id: 20, name: "Glow Stick Orange", category: "neon", bg: "#451a03", bg2: "#f97316", useGrad: true, style: "double-border", text: "#fed7aa", font: "Space Grotesk", pattern: "none" },
+
+            // Floral & Romantic (21-30)
+            { id: 21, name: "Sweet Hearts", category: "floral", bg: "#fff1f2", bg2: "#fecdd3", useGrad: true, style: "rounded", text: "#e11d48", font: "Pacifico", pattern: "hearts" },
+            { id: 22, name: "Sakura Blossom", category: "floral", bg: "#fdf2f8", bg2: "#fbcfe8", useGrad: true, style: "classic", text: "#db2777", font: "Playfair Display", pattern: "dots" },
+            { id: 23, name: "Lavender Dream", category: "floral", bg: "#f3e8ff", bg2: "#e9d5ff", useGrad: true, style: "rounded", text: "#7e22ce", font: "Pacifico", pattern: "stars" },
+            { id: 24, name: "Wild Rose", category: "floral", bg: "#881337", bg2: "#fda4af", useGrad: true, style: "polaroid", text: "#ffe4e6", font: "Playfair Display", pattern: "hearts" },
+            { id: 25, name: "Peach Garden", category: "floral", bg: "#fff7ed", bg2: "#ffedd5", useGrad: true, style: "rounded", text: "#c2410c", font: "Pacifico", pattern: "dots" },
+            { id: 26, name: "Botanical Sage", category: "floral", bg: "#f0fdf4", bg2: "#dcfce7", useGrad: true, style: "classic", text: "#15803d", font: "Playfair Display", pattern: "dots" },
+            { id: 27, name: "Crimson Love", category: "floral", bg: "#450a0a", bg2: "#ef4444", useGrad: true, style: "double-border", text: "#fca5a5", font: "Cinzel", pattern: "hearts" },
+            { id: 28, name: "Baby Pink Delight", category: "floral", bg: "#fce7f3", bg2: "#ffffff", useGrad: true, style: "rounded", text: "#9d174d", font: "Pacifico", pattern: "hearts" },
+            { id: 29, name: "Sunflower Warmth", category: "floral", bg: "#fefce8", bg2: "#fef08a", useGrad: true, style: "polaroid", text: "#a16207", font: "Playfair Display", pattern: "stars" },
+            { id: 30, name: "Lilac Whisper", category: "floral", bg: "#faf5ff", bg2: "#f3e8ff", useGrad: true, style: "rounded", text: "#6b21a8", font: "Pacifico", pattern: "dots" },
+
+            // Retro & Vintage (31-40)
+            { id: 31, name: "Retro 35mm Film", category: "retro", bg: "#18181b", bg2: "#000000", useGrad: false, style: "retro-film", text: "#e4e4e7", font: "Space Grotesk", pattern: "none" },
+            { id: 32, name: "Polaroid Instant", category: "retro", bg: "#ffffff", bg2: "#f4f4f5", useGrad: false, style: "polaroid", text: "#18181b", font: "Pacifico", pattern: "none" },
+            { id: 33, name: "Groovy 70s Strip", category: "retro", bg: "#78350f", bg2: "#f59e0b", useGrad: true, style: "classic", text: "#fef3c7", font: "Pacifico", pattern: "stripes" },
+            { id: 34, name: "Sepia Memories", category: "retro", bg: "#451a03", bg2: "#78350f", useGrad: true, style: "classic", text: "#fef3c7", font: "Playfair Display", pattern: "none" },
+            { id: 35, name: "Pop Art Yellow", category: "retro", bg: "#facc15", bg2: "#eab308", useGrad: false, style: "double-border", text: "#000000", font: "Space Grotesk", pattern: "dots" },
+            { id: 36, name: "80s Arcade Grid", category: "retro", bg: "#0f172a", bg2: "#312e81", useGrad: true, style: "classic", text: "#38bdf8", font: "Space Grotesk", pattern: "stripes" },
+            { id: 37, name: "Newspaper Print", category: "retro", bg: "#f5f5f4", bg2: "#e7e5e4", useGrad: false, style: "double-border", text: "#1c1917", font: "Playfair Display", pattern: "none" },
+            { id: 38, name: "Vintage Cinema", category: "retro", bg: "#09090b", bg2: "#27272a", useGrad: true, style: "retro-film", text: "#d4d4d8", font: "Cinzel", pattern: "none" },
+            { id: 39, name: "Comic Dot Orange", category: "retro", bg: "#ffedd5", bg2: "#fdba74", useGrad: false, style: "classic", text: "#9a3412", font: "Space Grotesk", pattern: "dots" },
+            { id: 40, name: "Technicolor Blue", category: "retro", bg: "#e0f2fe", bg2: "#bae6fd", useGrad: true, style: "rounded", text: "#0369a1", font: "Space Grotesk", pattern: "none" },
+
+            // Pastel & Minimal (41-50)
+            { id: 41, name: "Minty Fresh", category: "pastel", bg: "#ecfdf5", bg2: "#a7f3d0", useGrad: true, style: "rounded", text: "#047857", font: "Plus Jakarta Sans", pattern: "none" },
+            { id: 42, name: "Pastel Lavender", category: "pastel", bg: "#f5f3ff", bg2: "#ddd6fe", useGrad: true, style: "rounded", text: "#6d28d9", font: "Plus Jakarta Sans", pattern: "none" },
+            { id: 43, name: "Butter Yellow", category: "pastel", bg: "#fefce8", bg2: "#fef08a", useGrad: true, style: "rounded", text: "#854d0e", font: "Plus Jakarta Sans", pattern: "none" },
+            { id: 44, name: "Soft Sky Blue", category: "pastel", bg: "#f0f9ff", bg2: "#bae6fd", useGrad: true, style: "rounded", text: "#0369a1", font: "Plus Jakarta Sans", pattern: "none" },
+            { id: 45, name: "Minimal Carbon", category: "pastel", bg: "#18181b", bg2: "#27272a", useGrad: false, style: "minimal", text: "#f4f4f5", font: "Space Grotesk", pattern: "none" },
+            { id: 46, name: "Clean Studio White", category: "pastel", bg: "#ffffff", bg2: "#ffffff", useGrad: false, style: "minimal", text: "#0f172a", font: "Plus Jakarta Sans", pattern: "none" },
+            { id: 47, name: "Matcha Latte", category: "pastel", bg: "#f0fdf4", bg2: "#bbf7d0", useGrad: true, style: "rounded", text: "#166534", font: "Plus Jakarta Sans", pattern: "dots" },
+            { id: 48, name: "Cotton Candy", category: "pastel", bg: "#fce7f3", bg2: "#e0f2fe", useGrad: true, style: "rounded", text: "#be185d", font: "Pacifico", pattern: "stars" },
+            { id: 49, name: "Dusty Rose", category: "pastel", bg: "#ffe4e6", bg2: "#fecdd3", useGrad: true, style: "classic", text: "#9f1239", font: "Playfair Display", pattern: "none" },
+            { id: 50, name: "Nordic Slate", category: "pastel", bg: "#334155", bg2: "#1e293b", useGrad: true, style: "rounded", text: "#f8fafc", font: "Plus Jakarta Sans", pattern: "none" }
+        ];
+
+        function getSavedUserPresets() {
+            try {
+                return JSON.parse(localStorage.getItem('studiosnap_custom_presets')) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveUserPresetToStorage(preset) {
+            const current = getSavedUserPresets();
+            current.push(preset);
+            localStorage.setItem('studiosnap_custom_presets', JSON.stringify(current));
+        }
+
+        function deleteUserPresetFromStorage(id) {
+            let current = getSavedUserPresets();
+            current = current.filter(p => p.id !== id);
+            localStorage.setItem('studiosnap_custom_presets', JSON.stringify(current));
+            renderPresetGrid(presetCategorySelect.value);
+        }
 
         function speakText(text) {
             return new Promise((resolve) => {
@@ -340,14 +601,25 @@
         const state = {
             stream: null,
             isMirrored: true,
-            activeLayout: 'strip-3',
+            activeLayout: 'strip-3-twin',
             activeFilter: 'filter-normal',
             activeFrameStyle: 'classic',
             countdownDelay: 3,
             capturedPhotos: [],
             isCapturing: false,
             frameColor: '#ffffff',
-            footerText: 'StudioSnap • 2026 Event'
+            frameColor2: '#ffffff',
+            useGradient: false,
+            patternOverlay: 'none',
+            fontFamily: 'Space Grotesk',
+            textColor: '#0f172a',
+            footerText: 'StudioSnap • 2026 Event',
+            
+            // CUSTOM DIMENSIONS ENGINE STATE (Inches and DPI)
+            paperWidth: 4.0,
+            paperHeight: 6.0,
+            photoGap: 20,
+            dpi: 300
         };
 
         const videoElement = document.getElementById('videoElement');
@@ -366,22 +638,43 @@
         const capturesCountBadge = document.getElementById('capturesCountBadge');
         const stripProgressText = document.getElementById('stripProgressText');
         
+        const paperPresetSelect = document.getElementById('paperPresetSelect');
+        const paperWidthInput = document.getElementById('paperWidthInput');
+        const paperHeightInput = document.getElementById('paperHeightInput');
+        const photoGapInput = document.getElementById('photoGapInput');
+
         const modalFrameColorPicker = document.getElementById('modalFrameColorPicker');
+        const modalFrameColorPicker2 = document.getElementById('modalFrameColorPicker2');
+        const useGradientToggle = document.getElementById('useGradientToggle');
+        const bgPatternSelect = document.getElementById('bgPatternSelect');
+        const fontFamilySelect = document.getElementById('fontFamilySelect');
+        const modalTextColorPicker = document.getElementById('modalTextColorPicker');
         const modalFrameHexCode = document.getElementById('modalFrameHexCode');
         const modalFooterTextInput = document.getElementById('modalFooterTextInput');
+        const saveCustomPresetBtn = document.getElementById('saveCustomPresetBtn');
 
         const outputCanvas = document.getElementById('outputCanvas');
         const exportModal = document.getElementById('exportModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const downloadStripBtn = document.getElementById('downloadStripBtn');
         const saveToFolderBtn = document.getElementById('saveToFolderBtn');
-        const webShareBtn = document.getElementById('webShareBtn');
+        const printStripBtn = document.getElementById('printStripBtn');
+        const autoPrintToggle = document.getElementById('autoPrintToggle');
         const qrcodeContainer = document.getElementById('qrcode');
         const selectFolderBtn = document.getElementById('selectFolderBtn');
+
+        const tabPresetsBtn = document.getElementById('tabPresetsBtn');
+        const tabEditorBtn = document.getElementById('tabEditorBtn');
+        const tabPresetsContent = document.getElementById('tabPresetsContent');
+        const tabEditorContent = document.getElementById('tabEditorContent');
+        const presetCategorySelect = document.getElementById('presetCategorySelect');
+        const presetFramesGrid = document.getElementById('presetFramesGrid');
 
         window.onload = function() {
             initCamera();
             setupEventListeners();
+            renderPresetGrid('all');
+            updateLayoutDimensions();
             updateProgressIndicator();
         };
 
@@ -426,6 +719,113 @@
             }
         }
 
+        // UPDATE CSS VARIABLES & CANVAS DIMENSIONS DYNAMICALLY
+        function updateLayoutDimensions() {
+            const w = parseFloat(paperWidthInput.value) || 4.0;
+            const h = parseFloat(paperHeightInput.value) || 6.0;
+            const gap = parseInt(photoGapInput.value) || 20;
+
+            state.paperWidth = w;
+            state.paperHeight = h;
+            state.photoGap = gap;
+
+            // Apply CSS Variables for Printer and Container
+            document.documentElement.style.setProperty('--print-width', `${w}in`);
+            document.documentElement.style.setProperty('--print-height', `${h}in`);
+            document.documentElement.style.setProperty('--photo-gap', `${gap}px`);
+
+            if (state.capturedPhotos.length > 0) {
+                renderFinalPhotostrip();
+            }
+        }
+
+        function renderPresetGrid(categoryFilter) {
+            presetFramesGrid.innerHTML = '';
+            
+            let filtered = [];
+            if (categoryFilter === 'custom') {
+                filtered = getSavedUserPresets();
+            } else if (categoryFilter === 'all') {
+                filtered = [...getSavedUserPresets(), ...PRESET_DESIGNS];
+            } else {
+                filtered = PRESET_DESIGNS.filter(item => item.category === categoryFilter);
+            }
+
+            if (filtered.length === 0) {
+                presetFramesGrid.innerHTML = `
+                    <div class="col-span-3 py-8 text-center text-xs text-slate-500 italic">
+                        No saved custom presets yet. Go to Custom Frame Editor and click "Save Current Style as Preset".
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach(preset => {
+                const card = document.createElement('div');
+                card.className = "p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-brand-500 flex flex-col items-center gap-1.5 text-left transition-all group relative cursor-pointer";
+                
+                const previewBg = preset.useGrad 
+                    ? `linear-gradient(135deg, ${preset.bg}, ${preset.bg2})` 
+                    : preset.bg;
+
+                card.innerHTML = `
+                    <div class="w-full h-12 rounded-md shadow-inner flex items-center justify-center relative overflow-hidden border border-white/10" style="background: ${previewBg}">
+                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/40 text-white backdrop-blur-xs truncate max-w-[90%]" style="font-family: ${preset.font}; color: ${preset.text}">
+                            ${preset.name}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between w-full px-1">
+                        <span class="text-[10px] font-medium text-slate-300 truncate">${preset.name}</span>
+                        ${preset.isCustom ? `<button class="delete-preset-btn text-rose-400 hover:text-rose-300 p-0.5" title="Delete Preset"><i class="fa-solid fa-trash-can text-[10px]"></i></button>` : ''}
+                    </div>
+                `;
+
+                card.onclick = (e) => {
+                    if (e.target.closest('.delete-preset-btn')) {
+                        e.stopPropagation();
+                        if (confirm(`Sigurado ka bang gusto mong burahin ang preset na "${preset.name}"?`)) {
+                            deleteUserPresetFromStorage(preset.id);
+                        }
+                        return;
+                    }
+                    applyPresetDesign(preset);
+                };
+
+                presetFramesGrid.appendChild(card);
+            });
+        }
+
+        function applyPresetDesign(preset) {
+            state.frameColor = preset.bg;
+            state.frameColor2 = preset.bg2;
+            state.useGradient = preset.useGrad;
+            state.activeFrameStyle = preset.style;
+            state.textColor = preset.text;
+            state.fontFamily = preset.font;
+            state.patternOverlay = preset.pattern;
+            if (preset.footerText) state.footerText = preset.footerText;
+
+            modalFrameColorPicker.value = preset.bg;
+            modalFrameColorPicker2.value = preset.bg2;
+            useGradientToggle.checked = preset.useGrad;
+            bgPatternSelect.value = preset.pattern;
+            fontFamilySelect.value = preset.font;
+            modalTextColorPicker.value = preset.text;
+            modalFrameHexCode.textContent = preset.bg.toUpperCase();
+            if (preset.footerText) modalFooterTextInput.value = preset.footerText;
+
+            document.querySelectorAll('.modal-frame-btn').forEach(b => {
+                if(b.dataset.style === preset.style) {
+                    b.classList.add('active', 'border-2', 'border-brand-500');
+                    b.classList.remove('border-slate-700');
+                } else {
+                    b.classList.remove('active', 'border-2', 'border-brand-500');
+                    b.classList.add('border', 'border-slate-700');
+                }
+            });
+
+            renderFinalPhotostrip();
+        }
+
         function setupEventListeners() {
             requestCamBtn.onclick = () => initCamera();
             cameraSelect.onchange = (e) => initCamera(e.target.value);
@@ -444,9 +844,83 @@
                 }
             };
 
+            // PAPER SIZE PRESET ENGINE LISTENERS
+            paperPresetSelect.onchange = (e) => {
+                const val = e.target.value;
+                if (val === '4x6') {
+                    paperWidthInput.value = 4.0;
+                    paperHeightInput.value = 6.0;
+                } else if (val === '2x6') {
+                    paperWidthInput.value = 2.0;
+                    paperHeightInput.value = 6.0;
+                } else if (val === '5x7') {
+                    paperWidthInput.value = 5.0;
+                    paperHeightInput.value = 7.0;
+                }
+                updateLayoutDimensions();
+            };
+
+            paperWidthInput.oninput = () => {
+                paperPresetSelect.value = 'custom';
+                updateLayoutDimensions();
+            };
+
+            paperHeightInput.oninput = () => {
+                paperPresetSelect.value = 'custom';
+                updateLayoutDimensions();
+            };
+
+            photoGapInput.oninput = () => {
+                updateLayoutDimensions();
+            };
+
             mirrorToggleBtn.onclick = () => {
                 state.isMirrored = !state.isMirrored;
                 videoElement.style.transform = state.isMirrored ? 'scaleX(-1)' : 'scaleX(1)';
+            };
+
+            tabPresetsBtn.onclick = () => {
+                tabPresetsBtn.className = "flex-1 py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5";
+                tabEditorBtn.className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5";
+                tabPresetsContent.classList.remove('hidden');
+                tabEditorContent.classList.add('hidden');
+            };
+
+            tabEditorBtn.onclick = () => {
+                tabEditorBtn.className = "flex-1 py-2 rounded-lg bg-brand-600 text-white transition-all flex items-center justify-center gap-1.5";
+                tabPresetsBtn.className = "flex-1 py-2 rounded-lg text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-1.5";
+                tabEditorContent.classList.remove('hidden');
+                tabPresetsContent.classList.add('hidden');
+            };
+
+            presetCategorySelect.onchange = (e) => {
+                renderPresetGrid(e.target.value);
+            };
+
+            saveCustomPresetBtn.onclick = () => {
+                const presetName = prompt("Maglagay ng Pangalan para sa iyong Custom Preset Design:", "My Custom Frame");
+                if (presetName && presetName.trim() !== "") {
+                    const newPreset = {
+                        id: 'custom_' + Date.now(),
+                        name: presetName.trim(),
+                        category: 'custom',
+                        isCustom: true,
+                        bg: state.frameColor,
+                        bg2: state.frameColor2,
+                        useGrad: state.useGradient,
+                        style: state.activeFrameStyle,
+                        text: state.textColor,
+                        font: state.fontFamily,
+                        pattern: state.patternOverlay,
+                        footerText: state.footerText
+                    };
+                    saveUserPresetToStorage(newPreset);
+                    alert(`Matagumpay na na-save ang preset na "${presetName}"!`);
+                    
+                    presetCategorySelect.value = 'custom';
+                    tabPresetsBtn.click();
+                    renderPresetGrid('custom');
+                }
             };
 
             document.querySelectorAll('.timer-btn').forEach(btn => {
@@ -492,7 +966,6 @@
                 };
             });
 
-            // MODAL LIVE CUSTOMIZATION LISTENERS
             document.querySelectorAll('.modal-frame-btn').forEach(btn => {
                 btn.onclick = () => {
                     document.querySelectorAll('.modal-frame-btn').forEach(b => {
@@ -501,19 +974,44 @@
                     });
                     btn.classList.add('active', 'border-2', 'border-brand-500');
                     state.activeFrameStyle = btn.dataset.style;
-                    renderFinalPhotostrip(); // Live re-render!
+                    renderFinalPhotostrip();
                 };
             });
 
             modalFrameColorPicker.oninput = (e) => {
                 state.frameColor = e.target.value;
                 modalFrameHexCode.textContent = e.target.value.toUpperCase();
-                renderFinalPhotostrip(); // Live re-render!
+                renderFinalPhotostrip();
+            };
+
+            modalFrameColorPicker2.oninput = (e) => {
+                state.frameColor2 = e.target.value;
+                renderFinalPhotostrip();
+            };
+
+            useGradientToggle.onchange = (e) => {
+                state.useGradient = e.target.checked;
+                renderFinalPhotostrip();
+            };
+
+            bgPatternSelect.onchange = (e) => {
+                state.patternOverlay = e.target.value;
+                renderFinalPhotostrip();
+            };
+
+            fontFamilySelect.onchange = (e) => {
+                state.fontFamily = e.target.value;
+                renderFinalPhotostrip();
+            };
+
+            modalTextColorPicker.oninput = (e) => {
+                state.textColor = e.target.value;
+                renderFinalPhotostrip();
             };
 
             modalFooterTextInput.oninput = (e) => {
                 state.footerText = e.target.value;
-                renderFinalPhotostrip(); // Live re-render!
+                renderFinalPhotostrip();
             };
 
             startCaptureBtn.onclick = startPhotoboothSequence;
@@ -521,12 +1019,11 @@
             closeModalBtn.onclick = () => exportModal.classList.add('hidden');
             downloadStripBtn.onclick = downloadCanvasImage;
             saveToFolderBtn.onclick = confirmAndSaveAllFiles;
-            webShareBtn.onclick = triggerWebShare;
+            printStripBtn.onclick = () => window.print();
         }
 
         function getTargetShotCount() {
             if (state.activeLayout === 'single') return 1;
-            if (state.activeLayout === 'strip-3') return 3;
             if (state.activeLayout === 'grid-4') return 4;
             return 3;
         }
@@ -571,6 +1068,12 @@
                     confirmAndSaveAllFiles();
                 }, 300);
             }
+
+            if (autoPrintToggle.checked) {
+                setTimeout(() => {
+                    window.print();
+                }, 600);
+            }
         }
 
         async function runCountdownSequence(seconds) {
@@ -578,7 +1081,7 @@
             countdownStatusText.classList.remove('hidden');
             countdownNumber.textContent = "";
 
-            await speakText("Get ready! We will take a capture now! In");
+            await speakText("Get ready! In");
 
             let count = seconds;
             countdownNumber.textContent = count;
@@ -609,8 +1112,8 @@
 
         async function captureSingleFrame(shotIndex) {
             const canvas = document.createElement('canvas');
-            canvas.width = videoElement.videoWidth || 1280;
-            canvas.height = videoElement.videoHeight || 720;
+            canvas.width = videoElement.videoWidth || 1920;
+            canvas.height = videoElement.videoHeight || 1080;
             const ctx = canvas.getContext('2d');
 
             if (state.isMirrored) {
@@ -621,7 +1124,7 @@
             ctx.filter = getCanvasFilterString(state.activeFilter);
             ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
             state.capturedPhotos.push(dataUrl);
             renderThumbnails();
 
@@ -630,7 +1133,7 @@
                     blob: blob,
                     fileName: `raw-shot-${Date.now()}-${shotIndex}.jpg`
                 });
-            }, 'image/jpeg', 0.92);
+            }, 'image/jpeg', 0.95);
         }
 
         async function confirmAndSaveAllFiles() {
@@ -645,7 +1148,7 @@
                 return;
             }
 
-            const confirmSave = confirm(`Gusto mo bang i-save ang lahat ng ${totalFiles} na file (raw shots at photo strip) sa iyongnapiling folder?`);
+            const confirmSave = confirm(`Gusto mo bang i-save ang lahat ng ${totalFiles} na file (raw shots at photo strip) sa iyong napiling folder?`);
 
             if (confirmSave) {
                 try {
@@ -720,6 +1223,51 @@
             ctx.restore();
         }
 
+        function fillCanvasBackground(ctx, width, height) {
+            if (state.useGradient) {
+                const grad = ctx.createLinearGradient(0, 0, width, height);
+                grad.addColorStop(0, state.frameColor);
+                grad.addColorStop(1, state.frameColor2);
+                ctx.fillStyle = grad;
+            } else {
+                ctx.fillStyle = state.frameColor;
+            }
+            ctx.fillRect(0, 0, width, height);
+
+            if (state.patternOverlay !== 'none') {
+                ctx.save();
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                if (state.patternOverlay === 'dots') {
+                    for (let x = 0; x < width; x += 30) {
+                        for (let y = 0; y < height; y += 30) {
+                            ctx.beginPath();
+                            ctx.arc(x, y, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                } else if (state.patternOverlay === 'stripes') {
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                    ctx.lineWidth = 6;
+                    for (let i = -height; i < width + height; i += 30) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i + height, height);
+                        ctx.stroke();
+                    }
+                } else if (state.patternOverlay === 'stars' || state.patternOverlay === 'hearts') {
+                    ctx.font = '16px sans-serif';
+                    const icon = state.patternOverlay === 'stars' ? '★' : '♥';
+                    for (let x = 15; x < width; x += 60) {
+                        for (let y = 15; y < height; y += 60) {
+                            ctx.fillText(icon, x, y);
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+        }
+
+        // MAIN CANVAS GENERATOR USING DYNAMIC INCHES & DPI
         async function renderFinalPhotostrip() {
             const canvas = outputCanvas;
             const ctx = canvas.getContext('2d');
@@ -735,76 +1283,63 @@
                 });
             }));
 
-            let borderPadding = 40;
-            let gap = 30;
-            let footerHeight = 120;
-            
-            if (state.activeFrameStyle === 'minimal') {
-                borderPadding = 15;
-                gap = 15;
-                footerHeight = 80;
-            } else if (state.activeFrameStyle === 'polaroid') {
-                borderPadding = 50;
-                gap = 40;
-                footerHeight = 150;
-            }
+            // Calculate pixel dimensions from inches and DPI (300 DPI high resolution print quality)
+            const targetCanvasWidth = Math.round(state.paperWidth * state.dpi);
+            const targetCanvasHeight = Math.round(state.paperHeight * state.dpi);
 
-            const singleW = 800;
-            const singleH = 600;
+            canvas.width = targetCanvasWidth;
+            canvas.height = targetCanvasHeight;
 
-            let gridCols = 1;
-            let gridRows = photos.length;
+            fillCanvasBackground(ctx, canvas.width, canvas.height);
 
-            if (state.activeLayout === 'grid-4') {
-                gridCols = 2;
-                gridRows = 2;
+            const gap = state.photoGap;
+
+            if (state.activeLayout === 'strip-3-twin') {
+                const stripW = canvas.width / 2;
+                drawSingleStripContent(ctx, imgObjs, 0, 0, stripW, canvas.height, gap);
+                drawSingleStripContent(ctx, imgObjs, stripW, 0, stripW, canvas.height, gap);
+
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                ctx.moveTo(stripW, 0);
+                ctx.lineTo(stripW, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+            } else if (state.activeLayout === 'strip-3-single') {
+                drawSingleStripContent(ctx, imgObjs, 0, 0, canvas.width, canvas.height, gap);
+
+            } else if (state.activeLayout === 'grid-4') {
+                const pad = gap * 2;
+                const footerH = Math.round(canvas.height * 0.12);
+                const shotW = (canvas.width - (pad * 2) - gap) / 2;
+                const shotH = (canvas.height - (pad * 2) - gap - footerH) / 2;
+
+                imgObjs.slice(0, 4).forEach((img, i) => {
+                    const col = i % 2;
+                    const row = Math.floor(i / 2);
+                    const x = pad + col * (shotW + gap);
+                    const y = pad + row * (shotH + gap);
+
+                    renderStyledFrameImage(ctx, img, x, y, shotW, shotH);
+                });
+
+                drawFooterText(ctx, canvas.width / 2, canvas.height - (footerH / 2), Math.round(canvas.height * 0.025));
+
             } else if (state.activeLayout === 'single') {
-                gridCols = 1;
-                gridRows = 1;
+                const pad = gap * 2.5;
+                const footerH = Math.round(canvas.height * 0.14);
+                const shotW = canvas.width - (pad * 2);
+                const shotH = canvas.height - (pad * 2) - footerH;
+
+                renderStyledFrameImage(ctx, imgObjs[0], pad, pad, shotW, shotH);
+                drawFooterText(ctx, canvas.width / 2, canvas.height - (footerH / 2), Math.round(canvas.height * 0.028));
             }
 
-            canvas.width = (singleW * gridCols) + (gap * (gridCols - 1)) + (borderPadding * 2);
-            canvas.height = (singleH * gridRows) + (gap * (gridRows - 1)) + borderPadding + footerHeight;
-
-            ctx.fillStyle = state.frameColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            imgObjs.forEach((img, i) => {
-                const col = i % gridCols;
-                const row = Math.floor(i / gridCols);
-                const xPos = borderPadding + (col * (singleW + gap));
-                const yPos = borderPadding + (row * (singleH + gap));
-
-                if (state.activeFrameStyle === 'rounded') {
-                    drawRoundedImage(ctx, img, xPos, yPos, singleW, singleH, 30);
-                } else if (state.activeFrameStyle === 'polaroid') {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.15)';
-                    ctx.shadowBlur = 15;
-                    ctx.fillRect(xPos - 15, yPos - 15, singleW + 30, singleH + 30);
-                    ctx.shadowBlur = 0;
-                    ctx.drawImage(img, xPos, yPos, singleW, singleH);
-                } else if (state.activeFrameStyle === 'double-border') {
-                    ctx.drawImage(img, xPos, yPos, singleW, singleH);
-                    ctx.strokeStyle = isColorLight(state.frameColor) ? '#000000' : '#ffffff';
-                    ctx.lineWidth = 6;
-                    ctx.strokeRect(xPos - 10, yPos - 10, singleW + 20, singleH + 20);
-                } else if (state.activeFrameStyle === 'retro-film') {
-                    ctx.drawImage(img, xPos, yPos, singleW, singleH);
-                    ctx.fillStyle = '#000000';
-                    ctx.fillRect(xPos - 30, yPos + (singleH / 2) - 20, 15, 40);
-                    ctx.fillRect(xPos + singleW + 15, yPos + (singleH / 2) - 20, 15, 40);
-                } else {
-                    ctx.drawImage(img, xPos, yPos, singleW, singleH);
-                }
-            });
-
-            drawFooterText(ctx, canvas.width / 2, canvas.height - (footerHeight / 2));
             generateQRCode(canvas.toDataURL('image/png'));
 
-            // Update pending blob list
             canvas.toBlob((blob) => {
-                // I-update o palitan ang huling photostrip blob
                 const stripIndex = pendingBlobsToSave.findIndex(item => item.fileName.startsWith('photostrip-'));
                 const newStrip = {
                     blob: blob,
@@ -818,24 +1353,53 @@
             }, 'image/png');
         }
 
-        function drawFooterText(ctx, x, y) {
+        function drawSingleStripContent(ctx, imgObjs, xOffset, yOffset, width, height, gap) {
+            const pad = gap * 1.5;
+            const footerH = Math.round(height * 0.1);
+            const shotW = width - (pad * 2);
+            const shotH = Math.floor((height - (pad * 2) - (gap * 2) - footerH) / 3);
+
+            imgObjs.slice(0, 3).forEach((img, i) => {
+                const x = xOffset + pad;
+                const y = yOffset + pad + i * (shotH + gap);
+                renderStyledFrameImage(ctx, img, x, y, shotW, shotH);
+            });
+
+            drawFooterText(ctx, xOffset + (width / 2), yOffset + height - (footerH / 2), Math.round(height * 0.018));
+        }
+
+        function renderStyledFrameImage(ctx, img, x, y, width, height) {
+            if (state.activeFrameStyle === 'rounded') {
+                drawRoundedImage(ctx, img, x, y, width, height, 20);
+            } else if (state.activeFrameStyle === 'polaroid') {
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.15)';
+                ctx.shadowBlur = 10;
+                ctx.fillRect(x - 10, y - 10, width + 20, height + 20);
+                ctx.shadowBlur = 0;
+                ctx.drawImage(img, x, y, width, height);
+            } else if (state.activeFrameStyle === 'double-border') {
+                ctx.drawImage(img, x, y, width, height);
+                ctx.strokeStyle = state.textColor || '#000000';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(x - 6, y - 6, width + 12, height + 12);
+            } else if (state.activeFrameStyle === 'retro-film') {
+                ctx.drawImage(img, x, y, width, height);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(x - 15, y + (height / 2) - 15, 10, 30);
+                ctx.fillRect(x + width + 5, y + (height / 2) - 15, 10, 30);
+            } else {
+                ctx.drawImage(img, x, y, width, height);
+            }
+        }
+
+        function drawFooterText(ctx, x, y, fontSize = 28) {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            const isLightBg = isColorLight(state.frameColor);
-            ctx.fillStyle = isLightBg ? '#0f172a' : '#ffffff';
-            
-            ctx.font = 'bold 32px "Space Grotesk", sans-serif';
+            ctx.fillStyle = state.textColor || '#0f172a';
+            ctx.font = `bold ${fontSize}px "${state.fontFamily}", sans-serif`;
             ctx.fillText(state.footerText, x, y);
-        }
-
-        function isColorLight(hex) {
-            const color = hex.replace('#', '');
-            const r = parseInt(color.substr(0, 2), 16) || 255;
-            const g = parseInt(color.substr(2, 2), 16) || 255;
-            const b = parseInt(color.substr(4, 2), 16) || 255;
-            const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-            return brightness > 155;
         }
 
         function generateQRCode(dataUrl) {
@@ -855,25 +1419,6 @@
             link.download = `photobooth-strip-${Date.now()}.png`;
             link.href = outputCanvas.toDataURL('image/png');
             link.click();
-        }
-
-        async function triggerWebShare() {
-            try {
-                outputCanvas.toBlob(async (blob) => {
-                    const file = new File([blob], 'photostrip.png', { type: 'image/png' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'My Photo Booth Strip',
-                            text: 'Check out my photo strip!'
-                        });
-                    } else {
-                        downloadCanvasImage();
-                    }
-                }, 'image/png');
-            } catch (err) {
-                console.log("Web share error:", err);
-            }
         }
     </script>
 </body>
